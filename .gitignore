@@ -1,0 +1,9 @@
+# local working files, not part of the published site
+/Emails/
+/anas-wireframe.html
+.claude/
+/TwistedDough_*.html
+/TwistedDough_*.png
+Thumbs.db
+desktop.ini
+.DS_Store
