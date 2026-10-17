@@ -34,29 +34,29 @@ h1{font-family:Outfit;font-weight:500;letter-spacing:-.03em;font-size:clamp(1.5r
 </head>
 <body>
 <div class="wrap">
-  <h1>Colour chooser</h1>
-  <p class="sub">Three options, nothing else. Every panel runs the identical simulation: Velocity's curl 5, density 0.97, velocity 0.98, 10 pressure iterations, splat 0.6, their shading pass, their half resolution render. The movement you liked is untouched. Only the colour changes.</p>
-  <div class="note"><b>What changed.</b> Two real fixes. <b>One.</b> The last set flooded the panel because the dye never faded. The smoke now fades about three times faster, so it stays a plume with black around it, which also lets me push the core much brighter without it taking over. <b>Two.</b> The hue is now driven by <b>how far you move</b>, not by a clock. That is the whole difference. Before, a stroke lasted under a second so the colour barely shifted and you got one flat hue. Now every bit of distance you cross advances the colour, so a single stroke paints a gradient along its own length, which is what your reference image actually is. Dye grid also doubled to 1024 for cleaner edges.</div>
+  <h1>Same effect, three levels</h1>
+  <p class="sub">You picked the full spectrum one, so all three panels are that exact effect with that exact movement. Only the restraint changes. A is the most held back, C is the closest to what you just saw.</p>
+  <div class="note"><b>What was flooding the screen.</b> Not the smoke, the <b>bloom</b>. Bloom makes things glow by blurring the bright parts over and over, and every extra pass doubles how far that glow travels. It was running eight passes, so the halo reached the full width of the panel however small the plume was. That is the light you kept seeing everywhere. These run three, four and five passes, so the glow stays on the smoke. The dye is dimmer and fades faster on top of that.</div>
 
 
-  <div class="demo" id="c2"><canvas></canvas><span class="tag">02 · Full spectrum</span>
-    <h2>Closest to your reference</h2><p>Hue advances with how far you move, not with the clock, so a single stroke runs cyan through green, amber and red along its length.</p>
+  <div class="demo" id="c2"><canvas></canvas><span class="tag">A · Most held back</span>
+    <h2>Quietest</h2><p>Dim, tight and short lived. Safe behind body copy on every section.</p>
     <span class="hint">move your mouse here</span></div>
-  <p class="verdict"><b>This is the look in the image you sent.</b> Many hues inside one plume, because the colour moves while you do. Not your brand palette though.</p>
+  <p class="verdict"><b>Safest.</b> Some visitors will not consciously notice it, which for a background is usually correct.</p>
 
-  <div class="demo" id="c3"><canvas></canvas><span class="tag">03 · Coral through amber to teal</span>
-    <h2>Your colours, with a bridge</h2><p>Travels coral to amber to teal and back, so the two ends meet through a living colour rather than grey.</p>
+  <div class="demo" id="c3"><canvas></canvas><span class="tag">B · Middle</span>
+    <h2>My pick</h2><p>Visible without competing. The glow sits on the plume and nowhere else.</p>
     <span class="hint">move your mouse here</span></div>
-  <p class="verdict"><b>My pick.</b> Multi colour and rich, but every hue in it is either yours or sits between the two, so it still reads as Valency.</p>
+  <p class="verdict"><b>My pick.</b> Reads as deliberate rather than decorative, and still leaves the headline as the brightest thing on screen.</p>
 
-  <div class="demo" id="c4"><canvas></canvas><span class="tag">04 · Coral and teal only</span>
-    <h2>Strictly the brand palette</h2><p>Only the hues between coral and teal, nothing else introduced.</p>
+  <div class="demo" id="c4"><canvas></canvas><span class="tag">C · Closest to the last one</span>
+    <h2>Boldest</h2><p>Nearest to what you just saw, but with the halo pulled off the rest of the panel.</p>
     <span class="hint">move slowly, then quickly</span></div>
-  <p class="verdict"><b>Most disciplined.</b> Strictly on brand. The midpoint between coral and teal is a muted olive, so it is slightly less vivid than 03.</p>
+  <p class="verdict"><b>Boldest.</b> Take this one if the page feels too quiet at B. Watch it behind a paragraph before you decide.</p>
 
 
 
-  <div class="note" style="margin-top:34px"><b>Pick a number.</b> 02 if you want exactly what was in your reference. 03 if you want that richness kept on brand. 04 if nothing outside coral and teal is allowed. Tell me if any of them still run too bright and I will drop the level again.</div>
+  <div class="note" style="margin-top:34px"><b>Reply A, B or C.</b> Sweep across each one properly, a short jiggle will not show you the colour range. If none of them sit right I can keep dropping it, the numbers are one line each.</div>
 </div>
 
 <script>
@@ -81,21 +81,25 @@ const H_CORAL=0.018, H_AMBER=0.085, H_TEAL=0.468;   // your brand hues on the wh
    fraction of the panel you cross advances the hue, which paints a gradient
    along the stroke no matter how fast or slow you move. A slow time drift is
    added on top so a stationary wiggle still shifts colour.                  */
-const DYE_LEVEL=0.55;
 const MODES={
-  // full spectrum, closest to the image you sent. One panel width ~ 70% of the wheel.
-  spectrum: (travel)=> hsv2rgb(travel*0.70 + (Date.now()/14000), 0.95, 1).map(v=>v*DYE_LEVEL),
-  // coral -> amber -> teal and back, so the two brand colours meet through a live hue
-  brandwarm: (travel)=>{ const t=(Math.sin(travel*4.2 + Date.now()/5200)+1)/2;
-      const h = t<0.5 ? H_CORAL+(H_AMBER-H_CORAL)*(t*2) : H_AMBER+(H_TEAL-H_AMBER)*((t-0.5)*2);
-      return hsv2rgb(h,0.95,1).map(v=>v*DYE_LEVEL); },
-  // strictly the two brand hues, travelling the short way round
-  brandonly: (travel)=>{ const t=(Math.sin(travel*4.2 + Date.now()/5200)+1)/2;
-      return hsv2rgb(H_CORAL+(H_TEAL-H_CORAL)*t, 0.95, 1).map(v=>v*DYE_LEVEL); }
+  // full spectrum, driven by distance travelled. This is the one you picked.
+  spectrum: (travel,lvl)=> hsv2rgb(travel*0.70 + (Date.now()/14000), 0.95, 1).map(v=>v*lvl)
+};
+
+/* The three panels below are the SAME effect at three levels of restraint.
+   The thing that was washing the whole screen is the bloom chain, not the
+   smoke. Bloom works by blurring the bright parts over and over, and each
+   extra pass doubles how far that glow reaches. At 8 passes the halo covers
+   the entire panel no matter how small the plume is. Cutting the passes
+   keeps the glow sitting on the plume instead of spilling everywhere.      */
+const LEVELS={
+  a:{ dye:0.20, bIter:3, bInt:0.16, bThresh:0.85, splat:0.30, velDis:2.4, dyeDis:5.0 },
+  b:{ dye:0.30, bIter:4, bInt:0.22, bThresh:0.82, splat:0.38, velDis:1.8, dyeDis:4.2 },
+  c:{ dye:0.40, bIter:5, bInt:0.30, bThresh:0.78, splat:0.45, velDis:1.3, dyeDis:3.6 }
 };
 /* Recoloured on every single move event, so the gradient is continuous. */
 
-function fluid(canvas, mode){
+function fluid(canvas, mode, cfg){
   const gl = canvas.getContext('webgl2',{alpha:true,depth:false,stencil:false,antialias:false,preserveDrawingBuffer:false})
           || canvas.getContext('webgl',{alpha:true,depth:false,stencil:false,antialias:false});
   if(!gl) return false;
@@ -237,7 +241,7 @@ function fluid(canvas, mode){
   /* bloom: Dobryakov's chain, using the plugin's own numbers
      (they ship them as FLASH_* with the feature switched off)
      8 iterations, 256 base resolution, 0.8 intensity, 0.6 threshold, 0.7 knee */
-  const B_ITER=8, B_RES=256, B_INT=0.46, B_THRESH=0.72, B_KNEE=0.60;
+  const B_ITER=cfg.bIter, B_RES=256, B_INT=cfg.bInt, B_THRESH=cfg.bThresh, B_KNEE=0.60;
   const bloomTarget=FBO(B_RES,B_RES,RGBA,FILTER);
   const bloomChain=[];
   for(let i=0;i<B_ITER;i++){
@@ -304,7 +308,7 @@ function fluid(canvas, mode){
     gl.uniform1f(P.splat.u.aspectRatio, canvas.width/canvas.height);
     gl.uniform2f(P.splat.u.point,x,y);
     gl.uniform3f(P.splat.u.color,dx,dy,0);
-    gl.uniform1f(P.splat.u.radius, 0.6/100);
+    gl.uniform1f(P.splat.u.radius, cfg.splat/100);
     blit(vel.write); vel.swap();
     gl.uniform1i(P.splat.u.uTarget, dye.read.attach(0));
     gl.uniform3f(P.splat.u.color,col[0],col[1],col[2]);
@@ -334,9 +338,9 @@ function fluid(canvas, mode){
     blit(vel.write); vel.swap();
     gl.useProgram(P.adv.p); gl.uniform2f(P.adv.u.texelSize,vel.texelSizeX,vel.texelSizeY);
     gl.uniform1i(P.adv.u.uVelocity,vel.read.attach(0)); gl.uniform1i(P.adv.u.uSource,vel.read.attach(0));
-    gl.uniform1f(P.adv.u.dt,dt); gl.uniform1f(P.adv.u.dissipation,0.98); blit(vel.write); vel.swap();
+    gl.uniform1f(P.adv.u.dt,dt); gl.uniform1f(P.adv.u.dissipation,cfg.velDis); blit(vel.write); vel.swap();
     gl.uniform1i(P.adv.u.uVelocity,vel.read.attach(0)); gl.uniform1i(P.adv.u.uSource,dye.read.attach(1));
-    gl.uniform1f(P.adv.u.dissipation,3.4); blit(dye.write); dye.swap();   // contained, not screen filling
+    gl.uniform1f(P.adv.u.dissipation,cfg.dyeDis); blit(dye.write); dye.swap();
     applyBloom(dye.read, bloomTarget);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(P.disp.p);
@@ -359,7 +363,7 @@ function fluid(canvas, mode){
     const dx=5*mx, dy=5*-my;                      // their exact force multiplier
     pt.travel = (pt.travel||0) + Math.hypot(mx,my)/r.width;   // panel widths crossed
     pt.px=px; pt.py=py;
-    const col=MODES[mode](pt.travel);
+    const col=MODES[mode](pt.travel, cfg.dye);
     if(dx||dy) splat(px/r.width, 1-py/r.height, dx, dy, col);
     kick();
   },{passive:true});
@@ -369,10 +373,10 @@ function fluid(canvas, mode){
 }
 
 if(!reduced){
-  const map={c2:'spectrum',c3:'brandwarm',c4:'brandonly'};
+  const map={c2:'a',c3:'b',c4:'c'};
   for(const id in map){
     const cv=document.querySelector('#'+id+' canvas');
-    if(cv && !fluid(cv,map[id])){
+    if(cv && !fluid(cv,'spectrum',LEVELS[map[id]])){
       const p=document.createElement('p');
       p.style.cssText='position:relative;z-index:6;color:#FF6B5A;font-size:.8rem;margin-top:10px';
       p.textContent='WebGL unavailable in this browser';
